@@ -1,4 +1,4 @@
-const {Orders, OrderDevices} = require("../models/models");
+const {Orders, OrderDevices, Device} = require("../models/models");
 const ApiError = require("../error/apiError");
 const jwt = require("jsonwebtoken");
 
@@ -12,11 +12,12 @@ class OrdersController {
     async create(req,res, next){
         try {
             let orderDevices = [];
-            const {devices} = req.body;
+            const devices = req.body;
             let user = getUser(req);
             let order = await Orders.create({userId: user.id})
+            console.log(devices)
             for (let i = 0; i < devices.length; i++) {
-                let orderItem = await OrderDevices.create({deviceId: devices[i], orderId: order.id})
+                let orderItem = await OrderDevices.create({deviceId: devices[i].id, orderId: order.id})
                 orderDevices.push(orderItem);
             }
             return res.json(orderDevices);
@@ -31,6 +32,10 @@ class OrdersController {
         const orders = await Orders.findAll({where: {userId: user.id}});
         for (let i = 0; i < orders.length; i++) {
             let orderDevices = await OrderDevices.findAll({where: {orderId: orders[i].id}})
+            for (let index = 0; index < orderDevices.length; index++) {
+                let device = await Device.findOne({where: {id: orderDevices[index].deviceId}})
+                orderDevices[index].dataValues.device = device;
+            }
             userOrders.push(orderDevices)
         }
         return res.json(userOrders)

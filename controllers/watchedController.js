@@ -1,5 +1,6 @@
 const {Watched, Device} = require("../models/models");
 const ApiError = require("../error/apiError");
+const jwt = require('jsonwebtoken');
 
 function getUser(req) {
     if (!req.headers.authorization) {

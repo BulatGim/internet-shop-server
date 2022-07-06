@@ -23,6 +23,7 @@ class DeviceController {
             const device = await Device.create({name, price, brandId, typeId, img: fileName, amount})
             if (info) {
                 info = JSON.parse(info)
+                console.log(info)
                 info.forEach(i => {
                     DeviceInfo.create({
                         title: i.title,
@@ -49,7 +50,7 @@ class DeviceController {
     async getAll(req,res){
         let {brandId, typeId, limit, page} = req.query
         page = page || 1;
-        limit = limit || 8;
+        limit = limit || 12;
         let offset = page*limit - limit;
         let devices;
         if(!brandId && !typeId){
@@ -66,24 +67,35 @@ class DeviceController {
         }
         return res.json(devices)
     }
+    async getAllToStore(req,res){
+        let devices = await Device.findAll()
+        res.json({devices})
+    }
     async getOne(req,res, next){
         try {
             const {id} = req.params;
             const device = await Device.findOne(
                 {
                     where: {id},
-                    include: [{model: DeviceInfo, as: 'info'}]
+                    include: [{model: DeviceInfo, as: 'info'}, {model: DeviceColor}]
                 }
             )
+            const Colors = await DeviceColor.findAll({where: {deviceId: id}})
+            let updatedDevice = {
+                ...device.dataValues,
+                colors: Colors
+            }
             const user = getUser(req);
             if (user != null ){
-                const watched = await Watched.create({deviceId: id, userId: user.id})
+                const prevWatchedDevice = await Watched.findOne({where: {deviceId: id, userId: user.id}})
+                if (!prevWatchedDevice) {
+                    const watched = await Watched.create({deviceId: id, userId: user.id})
+                }
             }
             return res.json(device);
         } catch (error) {
             next(ApiError.badRequest(error.message))
         }
-        
     }
     async update(req,res, next){
         const {id, name, price, description} = req.body;

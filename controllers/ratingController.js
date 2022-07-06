@@ -63,6 +63,38 @@ class RatingController{
         const rate = await Rating.findOne({where: {id}})
         return res.json(rate);
     }
+    async getInOneDevice(req,res, next){
+        try {
+            const {id} = req.params;
+            let oldRatings = await Rating.findAll({where: {deviceId: id}})
+            let ratings = oldRatings.reverse();
+            for (let index = 0; index < ratings.length; index++) {
+                const userName = await User.findOne({where: {id: ratings[index].userId}})
+                const device = await Device.findOne({where: {id: ratings[index].deviceId}})
+                ratings[index].dataValues.userName = userName.name;
+                ratings[index].dataValues.deviceTitle = device.name;
+                ratings[index].dataValues.devicePrevieew = device.img;
+            }
+            return res.json(ratings);
+        } catch (error) {
+            next(ApiError.badRequest(error.message));
+        }
+    }
+    async getReviewsMadeByUser(req, res, next) {
+        try {
+            const {id} = req.params;
+            let oldRatings = await Rating.findAll({where: {userId: id}})
+            let ratings = oldRatings.reverse();
+            for (let index = 0; index < ratings.length; index++) {
+                const device = await Device.findOne({where: {id: ratings[index].deviceId}})
+                ratings[index].dataValues.deviceTitle = device.name;
+                ratings[index].dataValues.devicePrevieew = device.img;
+            }
+            return res.json(ratings)
+        } catch (error) {
+            next(ApiError.badRequest(error.message));
+        }
+    }
     async update (req, res, next){
         const {rate, rateDescription, deviceId, userId} = req.body;
         if (!deviceId||!userId||(!rate&&!rateDescription)) {
