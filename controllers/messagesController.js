@@ -9,10 +9,11 @@ function getUser(req) {
 }
 
 class MessagesController {
-    async create(req,res){
+    async create(req,res, next){
         try {
             const dialogId = req.params.id;
             const {description} = req.body;
+            console.log(req.body, dialogId);
             const user = getUser(req);
             const messageWithSameTitle = await Messages.findOne({where:{dialogId:dialogId}});
             let message;

@@ -18,7 +18,6 @@ class DialogController {
         }
         const dialog = await Dialogs.create({userId: user.id})
         const userDialogsTitle = await Messages.findOne({where: {title:title, userId: user.id}})
-        console.log(userDialogsTitle)
         if (userDialogsTitle){
             return next(ApiError.badRequest("You have same dialog, please write in same dialog"))
         }
@@ -31,6 +30,8 @@ class DialogController {
         for (let i = 0; i < dialogs.length; i++) {
             const messages = await Messages.findAll({where: {dialogId: dialogs[i].id}});
             let reversedMessages = messages.reverse();
+            /* return res.json(reversedMessages[0]) */
+            console.log(reversedMessages[0].dataValues)
             dialogs[i].dataValues.lastMessage = reversedMessages[0].description;
             dialogs[i].dataValues.title = reversedMessages[0].title;
             dialogs[i].dataValues.lasMessageDate = reversedMessages[0].createdAt;
